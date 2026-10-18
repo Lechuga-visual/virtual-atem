@@ -1,0 +1,38 @@
+name: Update published release documentation
+on:
+  push:
+    branches: [main]
+    paths: ['.github/release-notes.md']
+permissions:
+  contents: read
+jobs:
+  update-notes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - name: Update notes for the current version without replacing assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import { readFile } from 'node:fs/promises';
+          const { version } = JSON.parse(await readFile('package.json', 'utf8'));
+          const base = `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/releases`;
+          const headers = { Authorization: `Bearer ${process.env.GH_TOKEN}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+          const release = await fetch(`${base}/tags/v${version}`, { headers });
+          if (release.status === 404) {
+            console.log(`v${version} has not been published yet; the tag workflow will supply its notes.`);
+          } else {
+            if (!release.ok) throw new Error(`Release lookup failed: HTTP ${release.status}`);
+            const { id } = await release.json();
+            const body = await readFile('.github/release-notes.md', 'utf8');
+            const result = await fetch(`${base}/${id}`, { method: 'PATCH', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ body }) });
+            if (!result.ok) throw new Error(`Release documentation update failed: HTTP ${result.status}`);
+            console.log(`Updated bilingual release notes for v${version}; existing assets unchanged.`);
+          }
+          JS

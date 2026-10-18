@@ -52,7 +52,7 @@ def main():
     (stage / 'native').mkdir(parents=True)
     for name in ['src', 'public']:
         shutil.copytree(ROOT / name, stage / name)
-    for name in ['package.json', 'README.md', 'THIRD_PARTY.md']:
+    for name in ['package.json', 'README.md', 'README.en.md', 'CHANGELOG.md', 'THIRD_PARTY.md']:
         shutil.copy2(ROOT / name, stage / name)
     compiler = os.environ.get('CXX') or (shutil.which('cl') if os.name == 'nt' else shutil.which('x86_64-w64-mingw32-g++'))
     if not compiler:
