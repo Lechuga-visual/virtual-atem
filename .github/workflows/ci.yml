@@ -1,6 +1,8 @@
 name: Validate and package
 on:
   push:
+    branches: [main]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -20,6 +22,8 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm test
   windows:
+    permissions:
+      contents: write
     needs: test
     runs-on: windows-latest
     steps:
@@ -39,3 +43,27 @@ jobs:
             dist/Virtual-ATEM-*-windows-x64.zip
             dist/SHA256SUMS.txt
           if-no-files-found: error
+      - name: Publish Windows prerelease
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          gh release create "$env:GITHUB_REF_NAME" "dist/Virtual-ATEM-0.1.0-windows-x64.zip" "dist/SHA256SUMS.txt" --verify-tag --prerelease --title "Virtual ATEM $env:GITHUB_REF_NAME - Windows x64" --notes-file .github/release-notes.md
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Record successful publication for Git-only clients
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          $existing = git ls-remote origin refs/notes/releases
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($existing) {
+            git fetch origin refs/notes/releases:refs/notes/releases
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          git notes --ref=releases add -f -m "Published https://github.com/${{ github.repository }}/releases/tag/$env:GITHUB_REF_NAME with Windows ZIP and SHA256SUMS.txt" HEAD
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git push origin refs/notes/releases
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
