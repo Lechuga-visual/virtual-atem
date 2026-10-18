@@ -1,0 +1,41 @@
+name: Validate and package
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+  windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - run: python scripts/package-windows.py
+      - run: python scripts/test-camera-windows.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Virtual-ATEM-windows-x64
+          path: |
+            dist/Virtual-ATEM-*-windows-x64.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error

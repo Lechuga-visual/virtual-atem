@@ -1,0 +1,18 @@
+{
+  "name": "virtual-atem",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ATEM de pruebas con control UDP y cámara virtual Windows",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/atem.test.js",
+    "package:windows": "python3 scripts/package-windows.py"
+  },
+  "devDependencies": {
+    "atem-connection": "3.10.3"
+  }
+}
