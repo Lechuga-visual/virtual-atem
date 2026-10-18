@@ -27,7 +27,13 @@ struct Capture {
         view = static_cast<Header*>(MapViewOfFile(mapping, FILE_MAP_WRITE, 0, 0, sizeof(Header) + BYTES));
         return view != nullptr;
     }
-    bool wanted() { return ready() && WaitForSingleObject(want, 0) == WAIT_OBJECT_0; }
+    bool wanted() {
+        if(!ready()) return false;
+        // Unity Capture Receive() returns early while width is zero, before it
+        // signals Want. Seed the first frame to unlock that receiver handshake.
+        // After initialization, keep rendering only on consumer requests.
+        return view->width == 0 || WaitForSingleObject(want, 0) == WAIT_OBJECT_0;
+    }
     bool send(const uint8_t* data) {
         DWORD wait = WaitForSingleObject(mutex, 50);
         if(wait != WAIT_OBJECT_0 && wait != WAIT_ABANDONED) return false;

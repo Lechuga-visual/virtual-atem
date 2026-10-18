@@ -42,22 +42,32 @@ try:
     header[0] = size
     exe = Path(__file__).resolve().parent.parent / 'dist/Virtual-ATEM/native/camera-windows.exe'
     child = subprocess.Popen([str(exe)], stdin=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    def frame(program, preview, mix):
-        assert k.SetEvent(want)
+    def frame(program, preview, mix, request=True):
+        if request:
+            assert k.SetEvent(want)
         child.stdin.write(f'{program} {preview} {mix}\n'); child.stdin.flush()
         assert k.WaitForSingleObject(sent, 3000) == 0, 'sender did not deliver a frame'
         assert list(header)[1:] == [1280, 720, 1280, 0, 0, 0, 1000], list(header)
         return c.string_at(view + 32, 4)
-    assert frame(1, 2, 0) == bytes([27, 99, 153, 255])
+    # Match the real filter: Receive() does NOT signal Want until width != 0.
+    # The previous test signaled Want eagerly and hid a startup deadlock.
+    assert header[1] == 0
+    assert frame(1, 2, 0, request=False) == bytes([27, 99, 153, 255])
+    # Bootstrapping must not turn into continuous rendering without a consumer.
+    child.stdin.write('4 2 0\n'); child.stdin.flush()
+    assert k.WaitForSingleObject(sent, 150) == 258, 'idle sender rendered without a request'
     assert frame(4, 2, 0) == bytes([38, 124, 103, 255])
     assert frame(1, 2, .5) == bytes([75, 80, 144, 255])
     assert frame(1, 2, 1) == bytes([124, 61, 136, 255])
     # The number is white, with the camera color still present around it.
     frame(2, 1, 0)
     assert c.string_at(view + 32 + (150 * 1280 + 600) * 4, 4) == bytes([245, 245, 245, 255])
+    # A newly reset receiver must also bootstrap, without an event request.
+    header[1] = 0
+    assert frame(3, 1, 0, request=False) == bytes([176, 117, 34, 255])
     child.stdin.close(); child.wait(timeout=5)
     assert child.returncode == 0
-    print('PASS: native Windows executable, shared-memory ABI, four-channel RGBA, camera switch, MIX and clean shutdown.')
+    print('PASS: native Windows executable, shared-memory ABI, cold start without Want, idle/resume, receiver reset, RGBA, camera switch, MIX and clean shutdown.')
 finally:
     if child and child.poll() is None:
         child.kill(); child.wait()

@@ -1,6 +1,18 @@
-Primera versión de pruebas de Virtual ATEM para Windows x64.
+Virtual ATEM 0.1.1 para Windows x64: corrección del arranque de la webcam.
 
-Descarga y extrae **Virtual-ATEM-0.1.0-windows-x64.zip** completo. Incluye el runtime; no necesitas instalar Node.js.
+Corrige el bloqueo inicial que dejaba visible el patrón azul/magenta con el mensaje
+“Unity has not started sending image data”. El emisor ahora entrega el primer
+fotograma antes de esperar solicitudes del filtro. Después sigue evitando el
+renderizado cuando no hay consumidor.
+
+La prueba nativa reproduce ahora ese arranque sin señal de solicitud, comprueba
+pausa/reanudación y reinicialización del receptor, además de cambio de cámara y MIX.
+
+Para actualizar desde 0.1.0: cierra OBS y la consola de Virtual ATEM, extrae el ZIP
+y copia su contenido sobre la misma carpeta de instalación. El filtro no cambia;
+si mantienes la carpeta, no hace falta volver a registrarlo. Luego inicia la app y OBS.
+
+Descarga y extrae **Virtual-ATEM-0.1.1-windows-x64.zip** completo. Incluye el runtime; no necesitas instalar Node.js.
 
 1. En una carpeta permanente, ejecuta **Instalar webcam (administrador).cmd** como administrador.
 2. Ejecuta **Iniciar Virtual ATEM.cmd**.

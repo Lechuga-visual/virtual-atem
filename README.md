@@ -6,7 +6,7 @@ sin un mezclador físico. Primera versión: control compatible con la parte de
 
 ## Windows: usar el paquete portable
 
-1. Descarga `Virtual-ATEM-0.1.0-windows-x64.zip` desde los artefactos de GitHub Actions
+1. Descarga `Virtual-ATEM-0.1.1-windows-x64.zip` desde los artefactos de GitHub Actions
    (o desde Releases cuando haya una versión publicada). Extrae **todo** a una carpeta permanente.
 2. Ejecuta `Instalar webcam (administrador).cmd` con clic derecho → Ejecutar como administrador.
    Solo hace falta registrar el filtro una vez. Cierra y vuelve a abrir OBS tras registrarlo.
@@ -32,6 +32,13 @@ OBS y ejecuta `Desinstalar webcam (administrador).cmd` como administrador.
 La cámara no es un dispositivo USB: no reproduce VID/PID, audio ni Blackmagic Desktop Video.
 No sobrescribe una cámara física ATEM. La inscripción de Unity Capture existente
 puede verse afectada; usa una máquina de pruebas si ya utilizas ese filtro.
+
+## Actualizar desde 0.1.0
+
+La versión 0.1.1 corrige el bloqueo inicial de la cámara que mostraba el patrón
+azul/magenta y “Unity has not started sending image data”. Cierra OBS y Virtual ATEM,
+extrae el ZIP nuevo y reemplaza el contenido en la misma carpeta. No es necesario
+registrar otra vez el filtro si mantienes su ubicación. Vuelve a iniciar la app y OBS.
 
 ## Alcance
 
