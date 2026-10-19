@@ -7,14 +7,14 @@ without a physical switcher. It simulates four cameras, program, preview, CUT an
 AUTO/MIX over the ATEM control protocol. On Windows, it also exposes the program
 output as a virtual webcam that OBS can select.
 
-**[Download Windows x64 · v0.1.1](https://github.com/Lechuga-visual/virtual-atem/releases/download/v0.1.1/Virtual-ATEM-0.1.1-windows-x64.zip)**
+**[Download Windows x64 · v0.1.2](https://github.com/Lechuga-visual/virtual-atem/releases/download/v0.1.2/Virtual-ATEM-0.1.2-windows-x64.zip)**
 · [Releases](https://github.com/Lechuga-visual/virtual-atem/releases)
 · [Changelog](CHANGELOG.md#english)
 · [Third-party licenses](THIRD_PARTY.md#english)
 
-Preview release: compatibility with the plugin's client has been tested. Full
-capture in a real OBS installation still needs confirmation after the 0.1.1
-startup fix. Latency has not been calibrated against physical hardware.
+Preview release: compatibility with the plugin's client has been tested. The user
+confirmed video reception in OBS with 0.1.1. Version 0.1.2 fixes orientation and
+brings the image closer to the panel; its appearance still needs confirmation in real OBS. Latency has not been calibrated against physical hardware.
 
 ## Panel screenshots
 
@@ -79,15 +79,21 @@ registering this camera may rename the existing device. Do not run both senders
 at once. This virtual camera is not a Blackmagic USB device and does not reproduce
 its identifiers, audio or Blackmagic Desktop Video integration.
 
-## Updating to 0.1.1
+## Updating to 0.1.2
 
-0.1.1 fixes the startup deadlock that displayed the blue/magenta pattern and
-“Unity has not started sending image data”. The sender now delivers the first
-frame before waiting for requests from the filter.
+0.1.2 fixes the vertically inverted webcam and replaces seven-segment numbers
+with Segoe UI typography: a large centered number and a lower
+`CAMERA n / VIRTUAL ATEM` label, using the panel's background colors. Web and
+GDI rendering may have small typography and antialiasing differences.
+
+It also retains the 0.1.1 fix for the blue/magenta pattern with
+“Unity has not started sending image data”.
 
 1. Close OBS and the Virtual ATEM console.
 2. Extract the new ZIP and replace the files **in the same installation folder**.
-3. Start Virtual ATEM, then OBS.
+3. Start Virtual ATEM, then OBS, using **1280 × 720 at 30 FPS**.
+4. If you applied a vertical flip in OBS to compensate for the previous release,
+   remove it so the new image is not flipped again.
 
 The filter has not changed. You do not need to register it again if its location
 stays the same. To move the installation, unregister the filter from the old
@@ -148,6 +154,7 @@ AUTO transition and a 2-frame delay.
 | Camera missing in OBS | Extract the whole ZIP, register the filter as administrator and restart OBS. |
 | Blue/magenta pattern and “Unity has not started sending image data” | Update from 0.1.0 to 0.1.1, make sure the console is still open, and check the panel's webcam status and log. |
 | “Unity has stopped sending image data” | Check that the sender is running; restart the app and reactivate the OBS source. |
+| Upside-down image or segmented numbers | Update to 0.1.2 and remove any compensating vertical flip in OBS. |
 | Resolution warning or incorrect image | Use custom 1280 × 720, 30 FPS and ARGB/XRGB. |
 | Panel does not open | Refresh after starting the service and check the console for an occupied port. |
 | Plugin does not connect | Use 127.0.0.1 on the same PC or the correct LAN IP; check UDP 9910 and other running instances. |
@@ -223,7 +230,9 @@ python scripts/test-camera-windows.py
 
 This runs the sender against the filter's shared-memory interface without
 registering the device. It checks startup without an initial request,
-pause/resume, receiver reset, colors, numbering, MIX and shutdown.
+pause/resume, receiver reset, colors, centering, the lower label, DirectShow
+orientation, MIX and shutdown. It writes `dist/camera-preview.png`, reconstructing
+the Windows sender image using DirectShow row order; this is not an OBS screenshot.
 **It does not replace a real OBS capture test.**
 
 ## Building and publishing for Windows
@@ -253,8 +262,11 @@ documentation revision.
 - **Verified:** control tests on all three systems, integration with the plugin
   and simulated OBS, and compilation and testing of the native sender on Windows.
 - **0.1.1 fix:** webcam startup without an initial request, covered by a CI regression test.
-- **Pending:** filter registration/unregistration and complete capture in real OBS
-  after that fix, reopening the source, resource and latency measurements with OBS,
+- **User confirmation:** OBS receives video from 0.1.1; vertical inversion and
+  a visual difference from the panel were identified.
+- **0.1.2 fix:** sender orientation and presentation, covered by a native test.
+- **Pending:** visual confirmation of 0.1.2 in OBS, filter registration/unregistration,
+  reopening the source, resource and latency measurements with OBS,
   equivalence to a physical ATEM and ATEM Software Control.
 
 Automated results do not establish compatibility with every webcam application

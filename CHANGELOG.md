@@ -14,6 +14,14 @@
 - Los paquetes generados desde esta revisión incluyen las dos guías y este historial.
 - Los ZIP ya publicados no cambian con esta actualización de documentación.
 
+### [0.1.2](https://github.com/Lechuga-visual/virtual-atem/releases/tag/v0.1.2)
+
+- Corrige la inversión vertical de la webcam respetando el orden de filas de DirectShow.
+- Reemplaza los dígitos de segmentos por Segoe UI, número centrado y rótulo inferior, con colores del panel.
+- Conserva cuatro imágenes precalculadas y la mezcla bajo demanda; no incorpora navegador al emisor.
+- Añade verificación de orientación y composición en la prueba nativa y una imagen de referencia del emisor en la release.
+- Incluye las guías bilingües y sus capturas en el ZIP.
+
 ### [0.1.1](https://github.com/Lechuga-visual/virtual-atem/releases/tag/v0.1.1)
 
 - Corrige el bloqueo de arranque entre el emisor y el filtro de cámara: se entrega
@@ -45,6 +53,14 @@
 - Bilingual release notes, changelog and third-party notices.
 - Packages built from this revision include both guides and this changelog.
 - Previously published ZIP files are unchanged by this documentation update.
+
+### [0.1.2](https://github.com/Lechuga-visual/virtual-atem/releases/tag/v0.1.2)
+
+- Fixes the vertically inverted webcam by respecting DirectShow row order.
+- Replaces segmented digits with Segoe UI, a centered number and a lower label, using the panel colors.
+- Retains four precomputed images and on-demand blending; no browser is added to the sender.
+- Adds native orientation/layout checks and a sender reference image to the release.
+- Includes bilingual guides and their screenshots in the ZIP.
 
 ### [0.1.1](https://github.com/Lechuga-visual/virtual-atem/releases/tag/v0.1.1)
 

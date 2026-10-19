@@ -1,6 +1,6 @@
 {
   "name": "virtual-atem",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "ATEM de pruebas con control UDP y cámara virtual Windows",

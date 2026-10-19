@@ -60,9 +60,9 @@ def main():
     output = stage / 'native/camera-windows.exe'
     source = ROOT / 'native/camera-windows.cpp'
     if Path(compiler).stem.lower() == 'cl':
-        subprocess.run([compiler, '/nologo', '/O2', '/std:c++17', '/EHsc', '/MT', str(source), f'/Fe:{output}', f'/Fo:{downloads / "camera.obj"}'], check=True)
+        subprocess.run([compiler, '/nologo', '/O2', '/std:c++17', '/EHsc', '/MT', str(source), f'/Fe:{output}', f'/Fo:{downloads / "camera.obj"}', 'gdi32.lib', 'user32.lib'], check=True)
     else:
-        subprocess.run([compiler, '-O2', '-std=c++17', '-static', '-s', str(source), '-o', str(output)], check=True)
+        subprocess.run([compiler, '-O2', '-std=c++17', '-static', '-s', str(source), '-o', str(output), '-lgdi32', '-luser32'], check=True)
     archive_name = f'node-v{NODE_VERSION}-win-x64.zip'
     archive = downloads / archive_name
     sums = downloads / 'SHASUMS256.txt'

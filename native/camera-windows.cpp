@@ -8,6 +8,8 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+#include <string>
+#include <stdexcept>
 
 constexpr int W = 1280, H = 720, BYTES = W * H * 4;
 struct Header { uint32_t maxSize; int32_t width, height, stride, format, resize, mirror, timeout; };
@@ -43,22 +45,63 @@ struct Capture {
         ReleaseMutex(mutex); SetEvent(sent); return true;
     }
 };
-void rect(std::vector<uint8_t>& image, int x, int y, int w, int h) {
-    for(int j=y;j<y+h;j++) for(int i=x;i<x+w;i++) {
-        auto p = &image[(j*W+i)*4]; p[0]=p[1]=p[2]=245; p[3]=255;
+// DirectShow's positive-height RGB bitmap is bottom-up. Keep the cached
+// RGBA images in that order; the filter swaps channels without flipping rows.
+struct Canvas {
+    HDC dc = nullptr;
+    HBITMAP bitmap = nullptr;
+    HGDIOBJ previous = nullptr;
+    void* bits = nullptr;
+    ~Canvas() {
+        if(previous) SelectObject(dc, previous);
+        if(bitmap) DeleteObject(bitmap);
+        if(dc) DeleteDC(dc);
     }
+};
+void text(HDC dc, const std::wstring& value, int height, int weight, RECT area) {
+    HFONT font = CreateFontW(-height, 0, 0, 0, weight, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+        ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
+    if(!font) throw std::runtime_error("No se pudo crear la fuente de Windows");
+    HGDIOBJ previous = SelectObject(dc, font);
+    int result = DrawTextW(dc, value.c_str(), -1, &area, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+    SelectObject(dc, previous); DeleteObject(font);
+    if(!result) throw std::runtime_error("No se pudo dibujar el texto de la camara");
 }
 std::vector<uint8_t> source(int n) {
     const uint8_t colors[4][3]={{27,99,153},{124,61,136},{176,117,34},{38,124,103}};
+    Canvas canvas;
+    canvas.dc = CreateCompatibleDC(nullptr);
+    if(!canvas.dc) throw std::runtime_error("No se pudo crear el contexto de imagen");
+    BITMAPINFO info = {};
+    info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    info.bmiHeader.biWidth = W;
+    info.bmiHeader.biHeight = H; // positive = bottom-up, as expected by the filter
+    info.bmiHeader.biPlanes = 1;
+    info.bmiHeader.biBitCount = 32;
+    info.bmiHeader.biCompression = BI_RGB;
+    canvas.bitmap = CreateDIBSection(canvas.dc, &info, DIB_RGB_COLORS, &canvas.bits, nullptr, 0);
+    if(!canvas.bitmap || !canvas.bits) throw std::runtime_error("No se pudo crear la imagen de camara");
+    canvas.previous = SelectObject(canvas.dc, canvas.bitmap);
+    RECT full = {0, 0, W, H};
+    HBRUSH background = CreateSolidBrush(RGB(colors[n-1][0], colors[n-1][1], colors[n-1][2]));
+    if(!background) throw std::runtime_error("No se pudo crear el fondo de camara");
+    FillRect(canvas.dc, &full, background); DeleteObject(background);
+    SetBkMode(canvas.dc, TRANSPARENT); SetTextColor(canvas.dc, RGB(255, 255, 255));
+    // Match the web canvas at twice its dimensions: 380px bold number and
+    // 24px footer centered at y=652. Windows system-ui is Segoe UI.
+    text(canvas.dc, std::to_wstring(n), 380, FW_BOLD, full);
+    RECT footer = {0, 628, W, 676};
+    text(canvas.dc, L"CAMERA " + std::to_wstring(n) + L"  /  VIRTUAL ATEM", 24, FW_NORMAL, footer);
+    GdiFlush();
+    const auto* bgra = static_cast<const uint8_t*>(canvas.bits);
     std::vector<uint8_t> image(BYTES);
-    for(int i=0;i<W*H;i++) { memcpy(&image[i*4],colors[n-1],3); image[i*4+3]=255; }
-    // Seven-segment camera number, centered, identical for every output frame.
-    const unsigned masks[]={0,0x06,0x5b,0x4f,0x66};
-    const int segments[7][4]={{540,140,200,32},{708,140,32,220},{708,360,32,220},{540,548,200,32},{540,360,32,220},{540,140,32,220},{540,344,200,32}};
-    for(int i=0;i<7;i++) if(masks[n]&(1<<i)) rect(image,segments[i][0],segments[i][1],segments[i][2],segments[i][3]);
+    for(int i=0; i<BYTES; i+=4) {
+        image[i]=bgra[i+2]; image[i+1]=bgra[i+1]; image[i+2]=bgra[i]; image[i+3]=255;
+    }
     return image;
 }
-int main() {
+int main() try {
     Capture capture;
     std::vector<uint8_t> images[4]={source(1),source(2),source(3),source(4)}, blended(BYTES);
     int program, preview; double mix; bool wasActive=false;
@@ -79,4 +122,8 @@ int main() {
         if(!capture.send(frame)) { fprintf(stderr,"error enviando fotograma\n"); fflush(stderr); }
     }
     return 0;
+}
+catch(const std::exception& error) {
+    fprintf(stderr, "Error de webcam: %s\n", error.what()); fflush(stderr);
+    return 1;
 }
