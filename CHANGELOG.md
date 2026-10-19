@@ -6,6 +6,7 @@
 
 ### Documentación actualizada en main
 
+- Capturas reales del panel y de AUTO/MIX en ambas guías, con contexto de plataforma.
 - README principal en español y guía completa en [inglés](README.en.md), con enlaces de idioma.
 - Descarga directa de Windows x64, instalación, actualización, LAN, latencia y solución de problemas.
 - Estado de validación actualizado: se distinguen pruebas automatizadas y captura pendiente en OBS real.
@@ -37,6 +38,7 @@
 
 ### Documentation updated on main
 
+- Real panel and AUTO/MIX screenshots in both guides, with platform context.
 - Spanish default README and a complete [English guide](README.en.md), with language links.
 - Direct Windows x64 download, installation, upgrades, LAN, latency and troubleshooting.
 - Updated validation status distinguishes automated tests from pending real OBS capture.

@@ -16,6 +16,18 @@ Preview release: compatibility with the plugin's client has been tested. Full
 capture in a real OBS installation still needs confirmation after the 0.1.1
 startup fix. Latency has not been calibrated against physical hardware.
 
+## Panel screenshots
+
+![Virtual ATEM panel with camera 1 on program, camera 2 on preview and one connected client](docs/images/panel.png)
+
+Actual panel: **program 1** in red, **preview 2** in green and a connected ATEM
+test client. Connection details, AUTO duration and added video delay are below
+the controls. LAN addresses depend on the machine running the app.
+
+Captured on Linux using Chromium and `atem-connection` 3.10.3. This is why the
+webcam status says “solo vista previa” (preview only); it is not an OBS screenshot
+or validation of the Windows camera. The current panel interface is in Spanish.
+
 ## Included features
 
 | Feature | Current support |
@@ -112,6 +124,13 @@ To stop the service, press **Ctrl+C** in its console.
 The output uses four images with colored backgrounds and numbers 1–4. They are
 generated once; no video decoding is involved. AUTO blends program and preview
 over **1–250 frames**, defaulting to 30 frames.
+
+![AUTO/MIX transition from camera 1 to camera 4 in the Virtual ATEM panel](docs/images/auto-mix.png)
+
+AUTO/MIX in progress: program blends cameras **1 and 4**, while selection
+controls are disabled until completion. Camera 4 becomes program when the
+transition ends. This screenshot uses a 90-frame transition to make it visible;
+the default duration remains 30 frames.
 
 The added webcam delay is **0–120 frames**, initially **2** (approximately 67 ms
 at 30 FPS). Capture time and buffering in the filter and OBS add to this delay.

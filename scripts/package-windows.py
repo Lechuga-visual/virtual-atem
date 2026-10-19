@@ -50,7 +50,7 @@ def main():
     if stage.exists():
         shutil.rmtree(stage)
     (stage / 'native').mkdir(parents=True)
-    for name in ['src', 'public']:
+    for name in ['src', 'public', 'docs']:
         shutil.copytree(ROOT / name, stage / name)
     for name in ['package.json', 'README.md', 'README.en.md', 'CHANGELOG.md', 'THIRD_PARTY.md']:
         shutil.copy2(ROOT / name, stage / name)
