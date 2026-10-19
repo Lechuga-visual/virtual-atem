@@ -11,7 +11,8 @@
 #include <string>
 #include <stdexcept>
 
-constexpr int W = 1280, H = 720, BYTES = W * H * 4;
+constexpr int MAX_BYTES = 1920 * 1080 * 4;
+int W = 1280, H = 720, BYTES = W * H * 4;
 struct Header { uint32_t maxSize; int32_t width, height, stride, format, resize, mirror, timeout; };
 static_assert(sizeof(Header) == 32, "UnityCapture ABI");
 struct Capture {
@@ -26,7 +27,7 @@ struct Capture {
         if(!sent) sent = OpenEventA(EVENT_MODIFY_STATE, FALSE, "UnityCapture_Sent");
         if(!mapping) mapping = OpenFileMappingA(FILE_MAP_WRITE, FALSE, "UnityCapture_Data");
         if(!want || !sent || !mapping) return false;
-        view = static_cast<Header*>(MapViewOfFile(mapping, FILE_MAP_WRITE, 0, 0, sizeof(Header) + BYTES));
+        view = static_cast<Header*>(MapViewOfFile(mapping, FILE_MAP_WRITE, 0, 0, sizeof(Header) + MAX_BYTES));
         return view != nullptr;
     }
     bool wanted() {
@@ -88,11 +89,10 @@ std::vector<uint8_t> source(int n) {
     if(!background) throw std::runtime_error("No se pudo crear el fondo de camara");
     FillRect(canvas.dc, &full, background); DeleteObject(background);
     SetBkMode(canvas.dc, TRANSPARENT); SetTextColor(canvas.dc, RGB(255, 255, 255));
-    // Match the web canvas at twice its dimensions: 380px bold number and
-    // 24px footer centered at y=652. Windows system-ui is Segoe UI.
-    text(canvas.dc, std::to_wstring(n), 380, FW_BOLD, full);
-    RECT footer = {0, 628, W, 676};
-    text(canvas.dc, L"CAMERA " + std::to_wstring(n) + L"  /  VIRTUAL ATEM", 24, FW_NORMAL, footer);
+    // Scale the number and footer proportionally to the 640x360 web canvas. Windows system-ui is Segoe UI.
+    text(canvas.dc, std::to_wstring(n), 190 * H / 360, FW_BOLD, full);
+    RECT footer = {0, 314 * H / 360, W, 338 * H / 360};
+    text(canvas.dc, L"CAMERA " + std::to_wstring(n) + L"  /  VIRTUAL ATEM", 12 * H / 360, FW_NORMAL, footer);
     GdiFlush();
     const auto* bgra = static_cast<const uint8_t*>(canvas.bits);
     std::vector<uint8_t> image(BYTES);
@@ -108,9 +108,19 @@ int main() try {
     fprintf(stderr,"esperando que OBS abra Virtual ATEM Camera\n"); fflush(stderr);
     char line[128];
     while(fgets(line,sizeof(line),stdin)) {
-        if(sscanf(line,"%d %d %lf",&program,&preview,&mix)!=3 || program<1 || program>4 || preview<1 || preview>4 || !(mix>=0 && mix<=1)) continue;
+        int width = W, height = H;
+        int fields = sscanf(line,"%d %d %lf %d %d",&program,&preview,&mix,&width,&height);
+        if((fields != 3 && fields != 5) || program<1 || program>4 || preview<1 || preview>4 || !(mix>=0 && mix<=1)) continue;
+        if(!((width == 1280 && height == 720) || (width == 1920 && height == 1080))) continue;
+        if(width != W || height != H) {
+            W = width; H = height; BYTES = W * H * 4;
+            for(int i=0;i<4;i++) images[i] = source(i+1);
+            blended.resize(BYTES);
+            wasActive = false;
+            fprintf(stderr,"formato %dx%d a 30 FPS; configura OBS con la misma resolucion\n",W,H); fflush(stderr);
+        }
         bool active=capture.wanted();
-        if(active!=wasActive) { fprintf(stderr,"%s\n",active?"enviando 1280x720 a 30 FPS":"sin consumidor activo"); fflush(stderr); wasActive=active; }
+        if(active!=wasActive) { if(active) fprintf(stderr,"enviando %dx%d a 30 FPS\n",W,H); else fprintf(stderr,"sin consumidor activo\n"); fflush(stderr); wasActive=active; }
         if(!active) continue;
         const auto& a=images[program-1]; const auto& b=images[preview-1];
         const uint8_t* frame=a.data();

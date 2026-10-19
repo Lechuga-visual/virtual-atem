@@ -23,14 +23,23 @@ export class VideoOutput {
     child.on('exit', () => { clearInterval(this.timer); this.child = null; this.status = 'detenida'; });
     this.timer = setInterval(() => {
       if (child.stdin.destroyed) return;
-      this.samples.push(this.switcher.snapshot());
-      const count = this.switcher.latencyFrames + 1;
-      if (this.samples.length < count) return;
-      while (this.samples.length > count) this.samples.shift();
-      const s = this.samples[0];
+      const line = this.sample();
       // No unbounded pipe queue when the native sender or receiver is slow.
-      if (child.stdin.writableLength < 4096) child.stdin.write(`${s.program} ${s.preview} ${s.mix.toFixed(5)}\n`);
+      if (line && child.stdin.writableLength < 4096) child.stdin.write(line);
     }, 1000 / this.switcher.fps);
+  }
+  sample() {
+    const current = this.switcher.snapshot();
+    if (this.resolution !== current.resolution) {
+      // Old-sized frames must never reappear after applying a new format.
+      this.samples = []; this.resolution = current.resolution;
+    }
+    this.samples.push(current);
+    const count = current.latencyFrames + 1;
+    if (this.samples.length < count) return null;
+    while (this.samples.length > count) this.samples.shift();
+    const s = this.samples[0];
+    return `${s.program} ${s.preview} ${s.mix.toFixed(5)} ${s.width} ${s.height}\n`;
   }
   async close() {
     clearInterval(this.timer);

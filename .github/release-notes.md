@@ -1,68 +1,74 @@
 ## Español
 
-**Virtual ATEM 0.1.2 · Windows x64 · Versión de pruebas**
+**Virtual ATEM 0.1.3 · Windows x64 · Versión de pruebas**
 
-[Descargar ZIP de Windows x64](https://github.com/Lechuga-visual/virtual-atem/releases/download/v0.1.2/Virtual-ATEM-0.1.2-windows-x64.zip)
-· [Guía completa](https://github.com/Lechuga-visual/virtual-atem/blob/main/README.md)
+[Descargar Windows x64](https://github.com/Lechuga-visual/virtual-atem/releases/download/v0.1.3/Virtual-ATEM-0.1.3-windows-x64.zip)
+· [Guía](https://github.com/Lechuga-visual/virtual-atem/blob/main/README.md)
 
-Corrige la inversión vertical de la webcam y reemplaza los dígitos de segmentos
-por un número grande centrado y el rótulo inferior `CAMERA n / VIRTUAL ATEM`.
-Utiliza Segoe UI y los colores del panel para acercar ambas imágenes, con posibles
-diferencias menores de renderizado entre GDI y el navegador. Las cuatro imágenes
-se generan una vez; no se agrega un navegador al proceso de video.
+En el panel, **Simulación → Resolución de salida (webcam)** permite elegir
+**1280 × 720** o **1920 × 1080**, ambas a **30 FPS**. Pulsa **Aplicar** y configura
+la misma resolución en las propiedades de Virtual ATEM Camera en OBS. La app
+no cambia automáticamente la configuración de captura de OBS. Si no coinciden,
+el filtro muestra su aviso de resolución.
 
-**Para actualizar desde 0.1.0/0.1.1:** cierra OBS y Virtual ATEM y reemplaza los
-archivos en la misma carpeta. El filtro no cambió; no hace falta registrarlo otra
-vez. Inicia la app y luego OBS a **1280 × 720, 30 FPS, ARGB/XRGB**. Si aplicaste un
-volteo vertical en OBS para compensar la versión anterior, quítalo.
+El cambio es en vivo, sin reiniciar la app. Conserva programa/preview y latencia,
+vacía estados del tamaño anterior y regenera las cuatro imágenes a la nueva
+resolución. No se permite cambiar durante AUTO. La salida inicial sigue siendo
+720p30 y los ajustes son temporales. El modo interno de control ATEM permanece
+en 1080p30; este selector ajusta la webcam, no el lienzo de OBS.
 
-Para instalar por primera vez, extrae el ZIP completo en una carpeta permanente,
-ejecuta `Instalar webcam (administrador).cmd` como administrador y luego
-`Iniciar Virtual ATEM.cmd`. En el plugin usa `127.0.0.1` si corre en el mismo PC;
-en OBS añade **Virtual ATEM Camera**. El ZIP incluye Node.js.
+También evita que las consultas de estado sobrescriban cambios pendientes en el
+formulario. Conserva la orientación, el diseño y las correcciones de arranque anteriores.
 
-Mantiene programa/preview, CUT, AUTO/MIX, UDP 9910 y retraso configurable.
-Conserva la corrección de arranque de 0.1.1. No incluye audio, streaming ni ISO.
-La recepción de video con 0.1.1 fue confirmada por el usuario; la presentación
-nueva requiere confirmación visual en OBS. Latencia de hardware y ATEM Software
-Control siguen sin validar.
+**Actualizar:** cierra OBS y Virtual ATEM y reemplaza los archivos en la misma
+carpeta. No hace falta registrar el filtro otra vez. Inicia la app y luego OBS.
+Para una primera instalación, ejecuta `Instalar webcam (administrador).cmd` como
+administrador y después `Iniciar Virtual ATEM.cmd`. El runtime viene incluido.
 
-La prueba nativa de Windows verifica orientación según el orden de filas
-DirectShow, centrado, rótulo, colores, mezcla y arranque. `camera-preview.png`
-es una imagen del emisor reconstruida por esa prueba, **no una captura de OBS**.
-`SHA256SUMS.txt` contiene la suma del ZIP. El paquete incluye documentación y
-capturas del panel en español e inglés.
+La prueba nativa de Windows alterna repetidamente 720p/1080p y revisa dimensiones,
+stride, proporciones, orientación y MIX. La prueba de API verifica formatos inválidos
+y bloqueo durante AUTO. Una prueba del buffer verifica que no vuelvan estados del
+formato anterior. Falta confirmar estos cambios de formato en OBS real.
+
+Incluye guías bilingües con capturas. `camera-preview.png` es una imagen reconstruida
+del emisor por la prueba nativa, no una captura de OBS; `SHA256SUMS.txt` contiene
+la suma del ZIP. Audio, streaming, ISO y compatibilidad con ATEM Software Control
+siguen fuera del alcance validado.
 
 ---
 
 ## English
 
-**Virtual ATEM 0.1.2 · Windows x64 · Preview release**
+**Virtual ATEM 0.1.3 · Windows x64 · Preview release**
 
-[Download Windows x64 ZIP](https://github.com/Lechuga-visual/virtual-atem/releases/download/v0.1.2/Virtual-ATEM-0.1.2-windows-x64.zip)
-· [Full guide](https://github.com/Lechuga-visual/virtual-atem/blob/main/README.en.md)
+[Download Windows x64](https://github.com/Lechuga-visual/virtual-atem/releases/download/v0.1.3/Virtual-ATEM-0.1.3-windows-x64.zip)
+· [Guide](https://github.com/Lechuga-visual/virtual-atem/blob/main/README.en.md)
 
-Fixes the upside-down webcam and replaces segmented digits with a large centered
-number and the lower `CAMERA n / VIRTUAL ATEM` label. Uses Segoe UI and panel
-colors to bring the images closer, with possible minor GDI/browser rendering
-differences. The four images are generated once; no browser is added to the video process.
+In the panel, **Simulación → Resolución de salida (webcam)** selects **1280 × 720**
+or **1920 × 1080**, both at **30 FPS**. Press **Aplicar** and set the same resolution
+in OBS's Virtual ATEM Camera properties. The app does not change OBS capture
+properties automatically. A mismatch displays the filter's resolution warning.
 
-**Updating from 0.1.0/0.1.1:** close OBS and Virtual ATEM and replace the files in
-the same folder. The filter is unchanged; registration is not needed again.
-Start the app, then OBS at **1280 × 720, 30 FPS, ARGB/XRGB**. Remove any vertical
-flip you applied in OBS to compensate for the previous version.
+Changes apply live without restarting. Program/preview and delay are retained,
+old-sized states are discarded, and all four images are regenerated at the new
+resolution. Changes are rejected during AUTO. Startup still defaults to 720p30,
+and settings remain temporary. Internal ATEM control mode remains 1080p30;
+the selector changes the webcam output, not the OBS canvas.
 
-For a first installation, extract the full ZIP to a permanent folder, run
-`Instalar webcam (administrador).cmd` as administrator, then run
-`Iniciar Virtual ATEM.cmd`. Set the plugin ATEM IP to `127.0.0.1` on the same PC;
-add **Virtual ATEM Camera** in OBS. Node.js is included.
+State polling no longer overwrites pending form edits. Previous orientation,
+visual styling and startup fixes are retained.
 
-Retains program/preview, CUT, AUTO/MIX, UDP 9910 and adjustable delay, as well as
-the 0.1.1 startup fix. Audio, streaming and ISO recording are not implemented.
-The user confirmed video reception with 0.1.1; the new appearance needs visual
-confirmation in OBS. Hardware latency equivalence and ATEM Software Control remain unverified.
+**Updating:** close OBS and Virtual ATEM and replace files in the same folder.
+No filter registration is required again. Start the app, then OBS. For a first
+installation, run `Instalar webcam (administrador).cmd` as administrator, then
+`Iniciar Virtual ATEM.cmd`. The runtime is included.
 
-The native Windows test checks orientation using DirectShow row order, centering,
-the lower label, colors, blending and startup. `camera-preview.png` is a sender
-image reconstructed by that test, **not an OBS screenshot**. `SHA256SUMS.txt`
-contains the ZIP checksum. The package includes Spanish and English guides and panel screenshots.
+The native Windows test repeatedly switches 720p/1080p and checks dimensions,
+stride, proportions, orientation and MIX. API tests cover invalid formats and
+changes during AUTO. A delay-buffer test checks that old-format states do not
+reappear. Format changes still need confirmation in real OBS.
+
+Includes bilingual guides with screenshots. `camera-preview.png` is a sender
+image reconstructed by the native test, not an OBS screenshot; `SHA256SUMS.txt`
+contains the ZIP checksum. Audio, streaming, ISO and ATEM Software Control
+compatibility remain outside the validated scope.

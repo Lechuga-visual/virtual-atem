@@ -5,6 +5,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { Atem } from 'atem-connection';
 import { Switcher } from '../src/switcher.js';
 import { AtemServer } from '../src/atem-server.js';
+import { VideoOutput } from '../src/video.js';
 import { createApp } from '../src/server.js';
 
 async function until(fn, timeout = 3000) {
@@ -60,6 +61,18 @@ test('local panel changes actual ATEM state and rejects cross-origin requests', 
   assert.equal((await action({ type: 'cut' }, { origin: 'https://example.org' })).status, 403);
   assert.equal((await action({ type: 'settings', rate: 10, latencyFrames: 3 })).status, 200);
   assert.equal(app.switcher.latencyFrames, 3);
+  const selected = await action({ type: 'settings', resolution: '1920x1080' });
+  assert.equal(selected.status, 200);
+  const state = await selected.json();
+  assert.equal(state.width, 1920); assert.equal(state.height, 1080); assert.equal(state.fps, 30);
+  assert.equal(state.program, 4); assert.equal(state.latencyFrames, 3);
+  assert.equal((await action({ type: 'settings', resolution: '3840x2160' })).status, 400);
+  assert.equal(app.switcher.resolution, '1920x1080');
+  assert.equal((await action({ type: 'settings', resolution: '1280x720' })).status, 200);
+  assert.equal(app.switcher.resolution, '1280x720');
+  await action({ type: 'auto' });
+  assert.equal((await action({ type: 'settings', resolution: '1920x1080' })).status, 400);
+  assert.equal(app.switcher.resolution, '1280x720');
 });
 
 test('UDP loss: initial state retransmission and duplicate CUT are handled', { timeout: 6000 }, async t => {
@@ -84,4 +97,18 @@ test('UDP loss: initial state retransmission and duplicate CUT are handled', { t
   await a.cut(); await delay(180);
   assert.equal(sw.program, 2); assert.equal(sw.preview, 1);
   assert.equal(a.state.video.mixEffects[0].programInput, 2);
+});
+
+
+test('video delay preserves frame latency and flushes stale formats on resolution changes', () => {
+  const sw = new Switcher(), output = new VideoOutput(sw, () => {});
+  assert.equal(output.sample(), null);
+  sw.select('program', 2); assert.equal(output.sample(), null);
+  sw.select('program', 3); assert.equal(output.sample(), '1 2 0.00000 1280 720\n');
+  sw.configure({ resolution: '1920x1080' });
+  assert.equal(output.sample(), null);
+  assert.equal(output.sample(), null);
+  assert.equal(output.sample(), '3 2 0.00000 1920 1080\n');
+  sw.configure({ resolution: '1280x720', latencyFrames: 0 });
+  assert.equal(output.sample(), '3 2 0.00000 1280 720\n');
 });

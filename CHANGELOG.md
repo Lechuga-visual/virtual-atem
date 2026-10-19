@@ -14,6 +14,16 @@
 - Los paquetes generados desde esta revisión incluyen las dos guías y este historial.
 - Los ZIP ya publicados no cambian con esta actualización de documentación.
 
+### [0.1.3](https://github.com/Lechuga-visual/virtual-atem/releases/tag/v0.1.3)
+
+- Selector web de salida de webcam: 1280 × 720 o 1920 × 1080, ambas a 30 FPS.
+- Cambio en vivo sin reiniciar, conservando programa/preview y descartando estados de formato anterior.
+- Tamaño de imagen, tipografía, buffer y stride nativos adaptados al formato seleccionado.
+- Indicación dinámica del formato requerido en OBS y bloqueo de cambios durante AUTO.
+- El sondeo de estado ya no sobrescribe ajustes del formulario que todavía no se aplican.
+- Pruebas de API, latencia y cambios repetidos de resolución en el emisor Windows.
+- El modo de control ATEM permanece en 1080p30; no se cambian automáticamente las propiedades de OBS.
+
 ### [0.1.2](https://github.com/Lechuga-visual/virtual-atem/releases/tag/v0.1.2)
 
 - Corrige la inversión vertical de la webcam respetando el orden de filas de DirectShow.
@@ -53,6 +63,16 @@
 - Bilingual release notes, changelog and third-party notices.
 - Packages built from this revision include both guides and this changelog.
 - Previously published ZIP files are unchanged by this documentation update.
+
+### [0.1.3](https://github.com/Lechuga-visual/virtual-atem/releases/tag/v0.1.3)
+
+- Web selector for webcam output: 1280 × 720 or 1920 × 1080, both at 30 FPS.
+- Live changes without restarting; program/preview are retained and old-format states are discarded.
+- Native image size, typography, buffer and stride follow the selected format.
+- Dynamic OBS format instructions and rejection of changes during AUTO.
+- State polling no longer overwrites unapplied form edits.
+- API, delay and repeated Windows sender resolution-change tests.
+- ATEM control mode remains 1080p30; OBS capture properties are not changed automatically.
 
 ### [0.1.2](https://github.com/Lechuga-visual/virtual-atem/releases/tag/v0.1.2)
 

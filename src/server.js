@@ -39,7 +39,7 @@ export async function createApp({ port = 39124, udpPort = 9910, udpHost = '0.0.0
       else if (action.type === 'settings') switcher.configure(action);
       else if (action.type === 'disconnect') { atem.sessions.clear(); log('Sesiones desconectadas para probar reconexión'); }
       else return reply(400, { error: 'Acción desconocida' });
-      log(`Panel: ${action.type}`); reply(200, status());
+      log(`Panel: ${action.type}${action.type === 'settings' ? ` · ${switcher.resolution} · 30 FPS` : ''}`); reply(200, status());
     } catch (e) { reply(400, { error: e.message }); }
   });
   server.on('connection', socket => { streams.add(socket); socket.on('close', () => streams.delete(socket)); });

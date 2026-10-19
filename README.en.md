@@ -7,14 +7,14 @@ without a physical switcher. It simulates four cameras, program, preview, CUT an
 AUTO/MIX over the ATEM control protocol. On Windows, it also exposes the program
 output as a virtual webcam that OBS can select.
 
-**[Download Windows x64 · v0.1.2](https://github.com/Lechuga-visual/virtual-atem/releases/download/v0.1.2/Virtual-ATEM-0.1.2-windows-x64.zip)**
+**[Download Windows x64 · v0.1.3](https://github.com/Lechuga-visual/virtual-atem/releases/download/v0.1.3/Virtual-ATEM-0.1.3-windows-x64.zip)**
 · [Releases](https://github.com/Lechuga-visual/virtual-atem/releases)
 · [Changelog](CHANGELOG.md#english)
 · [Third-party licenses](THIRD_PARTY.md#english)
 
 Preview release: compatibility with the plugin's client has been tested. The user
-confirmed video reception in OBS with 0.1.1. Version 0.1.2 fixes orientation and
-brings the image closer to the panel; its appearance still needs confirmation in real OBS. Latency has not been calibrated against physical hardware.
+confirmed video reception and appearance in OBS with 0.1.2. Resolution changes
+in 0.1.3 still need confirmation in real OBS. Latency has not been calibrated against physical hardware.
 
 ## Panel screenshots
 
@@ -26,7 +26,8 @@ the controls. LAN addresses depend on the machine running the app.
 
 Captured on Linux using Chromium and `atem-connection` 3.10.3. This is why the
 webcam status says “solo vista previa” (preview only); it is not an OBS screenshot
-or validation of the Windows camera. The current panel interface is in Spanish.
+or validation of the Windows camera. The current panel interface is in Spanish. Screenshots use UDP 9911 for an
+isolated test instance; the normal startup default is still 9910.
 
 ## Included features
 
@@ -36,7 +37,7 @@ or validation of the Windows camera. The current panel interface is in Spanish.
 | Program and preview | Read state, switch from the panel or send client commands |
 | CUT | Swap program and preview |
 | AUTO | MIX transition; swap program/preview on completion |
-| Windows webcam | DirectShow, numbered images, 1280 × 720 at 30 FPS |
+| Windows webcam | DirectShow, numbered images, 720p/1080p at 30 FPS |
 | Video delay | Adjustable from 0 to 120 frames; defaults to 2 |
 | Multiple clients | Independent sessions, acknowledgements and retransmission |
 | Network testing | Disconnect clients from the panel to test reconnection |
@@ -79,9 +80,30 @@ registering this camera may rename the existing device. Do not run both senders
 at once. This virtual camera is not a Blackmagic USB device and does not reproduce
 its identifiers, audio or Blackmagic Desktop Video integration.
 
-## Updating to 0.1.2
+## Selecting the output resolution
 
-0.1.2 fixes the vertically inverted webcam and replaces seven-segment numbers
+Under **Simulación → Resolución de salida (webcam)**, select **1280 × 720 (HD)**
+or **1920 × 1080 (Full HD)** and press **Aplicar** (Apply). Both run at 30 FPS.
+Changing the format does not require restarting the app or registering the filter again.
+
+![Resolution selector with Full HD output applied](docs/images/resolution.png)
+
+Then open **Virtual ATEM Camera** properties in OBS and select **the same
+resolution**, 30 FPS and ARGB/XRGB. The panel displays the required format.
+OBS capture properties do not change automatically; a different size will show
+the resolution warning pattern. Deactivate and reactivate the source after
+adjusting the format if needed.
+
+This changes the webcam output, not the OBS canvas or web panel size. The internal
+mode advertised over the ATEM protocol remains **1080p30**. Program/preview and
+latency settings are retained; pending states with the old dimensions are discarded.
+Format changes are rejected during AUTO. Restarting resets to 1280 × 720.
+The screenshot uses test UDP port 9911; the normal startup default remains 9910.
+
+## Updating to 0.1.3
+
+0.1.3 adds output resolution selection and retains previous fixes.
+0.1.2 fixed the vertically inverted webcam and replaced seven-segment numbers
 with Segoe UI typography: a large centered number and a lower
 `CAMERA n / VIRTUAL ATEM` label, using the panel's background colors. Web and
 GDI rendering may have small typography and antialiasing differences.
@@ -91,7 +113,7 @@ It also retains the 0.1.1 fix for the blue/magenta pattern with
 
 1. Close OBS and the Virtual ATEM console.
 2. Extract the new ZIP and replace the files **in the same installation folder**.
-3. Start Virtual ATEM, then OBS, using **1280 × 720 at 30 FPS**.
+3. Start Virtual ATEM, then OBS, using **the selected resolution at 30 FPS**.
 4. If you applied a vertical flip in OBS to compensate for the previous release,
    remove it so the new image is not flipped again.
 
@@ -145,7 +167,7 @@ cause a pause while the state buffer fills. This is a simulation setting, not
 a measured latency profile of a physical ATEM.
 
 Settings are temporary: each startup resets to program 1, preview 2, a 30-frame
-AUTO transition and a 2-frame delay.
+AUTO transition, a 2-frame delay and 1280 × 720 output.
 
 ## Troubleshooting
 
@@ -154,8 +176,8 @@ AUTO transition and a 2-frame delay.
 | Camera missing in OBS | Extract the whole ZIP, register the filter as administrator and restart OBS. |
 | Blue/magenta pattern and “Unity has not started sending image data” | Update from 0.1.0 to 0.1.1, make sure the console is still open, and check the panel's webcam status and log. |
 | “Unity has stopped sending image data” | Check that the sender is running; restart the app and reactivate the OBS source. |
-| Upside-down image or segmented numbers | Update to 0.1.2 and remove any compensating vertical flip in OBS. |
-| Resolution warning or incorrect image | Use custom 1280 × 720, 30 FPS and ARGB/XRGB. |
+| Upside-down image or segmented numbers | Update to 0.1.3 and remove any compensating vertical flip in OBS. |
+| Resolution warning or incorrect image | Use the panel-selected resolution (720p or 1080p), 30 FPS and ARGB/XRGB. |
 | Panel does not open | Refresh after starting the service and check the console for an occupied port. |
 | Plugin does not connect | Use 127.0.0.1 on the same PC or the correct LAN IP; check UDP 9910 and other running instances. |
 | Plugin connects but OBS does not switch | Enable following, review program/preview rules, and check the plugin's WebSocket connection and scene names. |
@@ -175,7 +197,8 @@ The portable package does not install Node.js globally or change the firewall.
 
 The Node server has no production dependencies. The panel uses no frameworks or
 Electron. The native sender reuses four RGBA images and one blend buffer
-(~18 MiB of image data). It sends an initial image to start the filter, then only
+(~18 MiB at 720p or ~40 MiB at 1080p, excluding Node, the filter and temporary
+drawing buffers). Images are regenerated only when the resolution changes. It sends an initial image to start the filter, then only
 copies/blends when the consumer requests frames. The delay stores small states
 rather than a queue of uncompressed video. Panel polling stops when hidden.
 Total resource usage with OBS on Windows has not been measured yet.
@@ -231,7 +254,7 @@ python scripts/test-camera-windows.py
 This runs the sender against the filter's shared-memory interface without
 registering the device. It checks startup without an initial request,
 pause/resume, receiver reset, colors, centering, the lower label, DirectShow
-orientation, MIX and shutdown. It writes `dist/camera-preview.png`, reconstructing
+orientation, repeated 720p/1080p changes, MIX and shutdown. It writes `dist/camera-preview.png`, reconstructing
 the Windows sender image using DirectShow row order; this is not an OBS screenshot.
 **It does not replace a real OBS capture test.**
 
@@ -262,10 +285,10 @@ documentation revision.
 - **Verified:** control tests on all three systems, integration with the plugin
   and simulated OBS, and compilation and testing of the native sender on Windows.
 - **0.1.1 fix:** webcam startup without an initial request, covered by a CI regression test.
-- **User confirmation:** OBS receives video from 0.1.1; vertical inversion and
-  a visual difference from the panel were identified.
+- **User confirmation:** OBS video reception and appearance with 0.1.2.
 - **0.1.2 fix:** sender orientation and presentation, covered by a native test.
-- **Pending:** visual confirmation of 0.1.2 in OBS, filter registration/unregistration,
+- **0.1.3 change:** web and native resolution selection, with regression coverage.
+- **Pending:** resolution changes in real OBS, filter registration/unregistration,
   reopening the source, resource and latency measurements with OBS,
   equivalence to a physical ATEM and ATEM Software Control.
 

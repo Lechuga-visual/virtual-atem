@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-let token, refreshing = false;
+let token, refreshing = false, settingsDirty = false;
 let lastImage = "";
 const colors = ['#1b6399', '#7c3d88', '#b07522', '#267c67'];
 for (const bus of ['program', 'preview']) for (let i = 1; i <= 4; i++) {
@@ -22,19 +22,24 @@ function render(s) {
   $('cut').disabled = $('auto').disabled = s.inTransition; $('progress').value = s.position;
   $('connection').textContent = `${s.clients} cliente${s.clients === 1 ? '' : 's'} ATEM conectado${s.clients === 1 ? '' : 's'}`;
   $('addresses').textContent = `Plugin en este PC: 127.0.0.1 · LAN: ${s.addresses.join(', ') || 'sin interfaz'} · UDP ${s.udpPort}`;
+  $('output-format').textContent = `Formato personalizado: ${s.width} × ${s.height} · ${s.fps} FPS`;
+  $('footer-format').textContent = `${s.height}p${s.fps}`;
+  if (!settingsDirty) $('resolution').value = s.resolution;
+  $('resolution').disabled = s.inTransition;
   $('camera').textContent = `Webcam: ${s.camera}`;
   $('delay').textContent = `${s.latencyFrames} fotogramas ≈ ${(s.latencyFrames * 1000 / s.fps).toFixed(0)} ms añadidos, más captura y buffering de OBS. Perfil sin calibrar con hardware.`;
-  if (document.activeElement !== $('rate')) $('rate').value = s.rate;
-  if (document.activeElement !== $('latency')) $('latency').value = s.latencyFrames;
+  if (!settingsDirty) $('rate').value = s.rate;
+  if (!settingsDirty) $('latency').value = s.latencyFrames;
   $('log').textContent = s.messages.map(m => `${new Date(m.time).toLocaleTimeString()}  ${m.message}`).join('\n');
 }
 async function request(path, body) {
   const r = await fetch(path, { method: body ? 'POST' : 'GET', headers: { 'x-session-token': token, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
   const data = await r.json(); if (!r.ok) throw new Error(data.error); return data;
 }
-async function action(body) { try { render(await request('/api/action', body)); $('error').textContent = ''; } catch (e) { $('error').textContent = e.message; } }
+async function action(body) { try { const next = await request('/api/action', body); if (body.type === 'settings') settingsDirty = false; render(next); $('error').textContent = ''; } catch (e) { $('error').textContent = e.message; } }
 $('cut').onclick = () => action({ type: 'cut' }); $('auto').onclick = () => action({ type: 'auto' });
-$('settings').onsubmit = e => { e.preventDefault(); action({ type: 'settings', rate: Number($('rate').value), latencyFrames: Number($('latency').value) }); };
+$('settings').addEventListener('input', () => { settingsDirty = true; });
+$('settings').onsubmit = e => { e.preventDefault(); action({ type: 'settings', resolution: $('resolution').value, rate: Number($('rate').value), latencyFrames: Number($('latency').value) }); };
 $('disconnect').onclick = () => action({ type: 'disconnect' });
 async function refresh() {
   if (refreshing || document.hidden) return; refreshing = true;
